@@ -4,7 +4,6 @@
 #include <unistd.h>
 
 #include <filesystem>
-#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -92,9 +91,14 @@ vector<int> LinuxParser::Pids() {
 
 // TODO: Read and return the system memory utilization
 float LinuxParser::MemoryUtilization() {
+  // used = total - free - (Buffers + Cached + SReclaimable - Shmem)
   float memUsed = 0.0f;
   float memTotal = 0.0f;
   float memFree = 0.0f;
+  float memBuff = 0.0f;
+  float memCache = 0.0f;
+  float memSreclaim = 0.0f;
+  float memShmem = 0.0f;
   string line;
   string key;
   string value;
@@ -109,12 +113,19 @@ float LinuxParser::MemoryUtilization() {
           memTotal = stof(value);
         } else if (key == "MemFree") {
           memFree = stof(value);
+        } else if (key == "Buffers") {
+          memBuff = stof(value);
+        } else if (key == "Cached") {
+          memCache = stof(value);
+        } else if (key == "SReclaimable") {
+          memSreclaim = stof(value);
+        } else if (key == "Shmem") {
+          memShmem = stof(value);
         }
       }
     }
   }
-  memUsed = memTotal - memFree;
-  // std::cout << memUsed;
+  memUsed = memTotal - memFree - (memBuff + memCache + memSreclaim - memShmem);
   return memUsed;
 }
 
@@ -133,7 +144,26 @@ long LinuxParser::UpTime() {
 }
 
 // TODO: Read and return the number of jiffies for the system
-long LinuxParser::Jiffies() { return 0; }
+long LinuxParser::Jiffies() {
+  // Total number of jiffies is sum of all 10 columns in proc/stat first line
+  string label;
+  string line;
+  long value = 0, total_jiffies = 0;
+  std::ifstream stream(kProcDirectory + kStatFilename);
+  if (stream.is_open()) {
+    std::getline(stream, line);
+    std::istringstream linestream(line);
+
+    // Ignore the 'cpu' label
+    linestream >> label;
+
+    while (linestream >> value) {
+      total_jiffies += value;
+    }
+  }
+
+  return total_jiffies;
+}
 
 // TODO: Read and return the number of active jiffies for a PID
 // REMOVE: [[maybe_unused]] once you define the function
