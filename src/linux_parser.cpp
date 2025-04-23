@@ -167,13 +167,107 @@ long LinuxParser::Jiffies() {
 
 // TODO: Read and return the number of active jiffies for a PID
 // REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::ActiveJiffies(int pid [[maybe_unused]]) { return 0; }
+long LinuxParser::ActiveJiffies(int pid) {
+  // Active jiffies of a process is utime + stime
+  string token1, token2, token3;
+  string line;
+  long value = 0, utime = 0, stime = 0;
+  std::ifstream stream(kProcDirectory + std::to_string(pid) + kStatFilename);
+  if (stream.is_open()) {
+    std::getline(stream, line);
+    std::istringstream linestream(line);
+    std::replace(line.begin(), line.end(), '(', ' ');
+    std::replace(line.begin(), line.end(), ')', ' ');
+    // Ignore first three strings
+    linestream >> token1;
+    linestream >> token2;
+    linestream >> token3;
+    int i = 4;
+    // user time utime is in 14th pos and system time stime is in 15th.
+    while (linestream >> value) {
+      if (i == 14) {
+        utime = value;
+      }
+      if (i == 15) {
+        stime = value;
+        break;
+      }
+      i++;
+    }
+  }
+
+  return (utime + stime);
+}
 
 // TODO: Read and return the number of active jiffies for the system
-long LinuxParser::ActiveJiffies() { return 0; }
+long LinuxParser::ActiveJiffies() {
+  // Active jiffies of system is user + nice + system + irq + softirq + steal
+  string token;
+  string line;
+  long value = 0, activeJiffies = 0;
+  std::ifstream stream(kProcDirectory + kStatFilename);
+  if (stream.is_open()) {
+    std::getline(stream, line);
+    std::istringstream linestream(line);
+    // Ignore the 'cpu' label
+    linestream >> token;
+    int i = 1;
+    // Include: fields 1, 2, 3, 6, 7, 8 after cpu label
+    while (linestream >> value) {
+      switch (i) {
+        case 1:
+        case 2:
+        case 3:
+        case 6:
+        case 7:
+        case 8:
+          activeJiffies += value;
+          break;
+        default:
+          break;
+      }
+      i++;
+      if (i >= 9) {
+        break;
+      }
+    }
+  }
+
+  return activeJiffies;
+}
 
 // TODO: Read and return the number of idle jiffies for the system
-long LinuxParser::IdleJiffies() { return 0; }
+long LinuxParser::IdleJiffies() {
+  // Idle jiffies of system is idle + iowait
+  string token;
+  string line;
+  long value = 0, idleJiffies = 0;
+  std::ifstream stream(kProcDirectory + kStatFilename);
+  if (stream.is_open()) {
+    std::getline(stream, line);
+    std::istringstream linestream(line);
+    // Ignore the 'cpu' label
+    linestream >> token;
+    int i = 1;
+    // Include: fields 4,5 after cpu label
+    while (linestream >> value) {
+      switch (i) {
+        case 4:
+        case 5:
+          idleJiffies += value;
+          break;
+        default:
+          break;
+      }
+      i++;
+      if (i >= 6) {
+        break;
+      }
+    }
+  }
+
+  return idleJiffies;
+}
 
 // TODO: Read and return CPU utilization
 vector<string> LinuxParser::CpuUtilization() { return {}; }

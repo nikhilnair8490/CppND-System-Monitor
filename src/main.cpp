@@ -5,6 +5,6 @@
 
 int main() {
   System system;
-  //std::cout << LinuxParser::UpTime() << std::endl;
+  //std::cout << LinuxParser::IdleJiffies() << std::endl;
   NCursesDisplay::Display(system);
 }
