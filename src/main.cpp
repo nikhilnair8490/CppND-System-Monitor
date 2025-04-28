@@ -5,6 +5,6 @@
 
 int main() {
   System system;
-  std::cout << LinuxParser::RunningProcesses() << std::endl;
+  std::cout << LinuxParser::User(1508) << std::endl;
   //NCursesDisplay::Display(system);
 }

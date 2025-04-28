@@ -273,7 +273,7 @@ long LinuxParser::IdleJiffies() {
 vector<string> LinuxParser::CpuUtilization() { return {}; }
 
 // TODO: Read and return the total number of processes
-int LinuxParser::TotalProcesses() { 
+int LinuxParser::TotalProcesses() {
   // Total processes is in proc/stat file under the processes key
   string key;
   string line;
@@ -284,18 +284,18 @@ int LinuxParser::TotalProcesses() {
       std::istringstream linestream(line);
       // Get the key/label
       linestream >> key;
-      if(key == "processes"){
-        //Get the value at that key
+      if (key == "processes") {
+        // Get the value at that key
         linestream >> totalProcesses;
         break;
       }
     }
   }
   return totalProcesses;
- }
+}
 
 // TODO: Read and return the number of running processes
-int LinuxParser::RunningProcesses() { 
+int LinuxParser::RunningProcesses() {
   // Active/running processes is in proc/stat file under the procs_running key
   string key;
   string line;
@@ -306,31 +306,99 @@ int LinuxParser::RunningProcesses() {
       std::istringstream linestream(line);
       // Get the key/label
       linestream >> key;
-      if(key == "procs_running"){
-        //Get the value at that key
+      if (key == "procs_running") {
+        // Get the value at that key
         linestream >> runProcesses;
         break;
       }
     }
   }
   return runProcesses;
- }
+}
 
 // TODO: Read and return the command associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Command(int pid [[maybe_unused]]) { return string(); }
+string LinuxParser::Command(int pid) {
+  // Command associated by a process is in processes cmdline file
+  string cmdLine = "";
+  string line;
+  std::ifstream fileStream(kProcDirectory + std::to_string(pid) +
+                           kCmdlineFilename);
+  if (fileStream.is_open()) {
+    std::getline(fileStream, line);
+    std::istringstream linestream(line);
+    linestream >> cmdLine;
+  }
+  return cmdLine;
+}
 
 // TODO: Read and return the memory used by a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Ram(int pid [[maybe_unused]]) { return string(); }
+string LinuxParser::Ram(int pid) {
+  // Memory (RAM) by a process is in processes stat file @ VmRSS
+  string memUsed = "";
+  string line;
+  string key, value, kB;
+  std::ifstream fileStream(kProcDirectory + std::to_string(pid) +
+                           kStatusFilename);
+  if (fileStream.is_open()) {
+    while (getline(fileStream, line)) {
+      std::istringstream linestream(line);
+      linestream >> key >> value >> kB;
+      if (key == "VmRSS:") {
+        memUsed = value;
+        break;
+      }
+    }
+  }
+  return memUsed;
+}
 
 // TODO: Read and return the user ID associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Uid(int pid [[maybe_unused]]) { return string(); }
+string LinuxParser::Uid(int pid) {
+  // Uid for a process is in processes stat file @ UiD: 1st value is real user
+  // id
+  string Uid = "";
+  string line;
+  string key, value;
+  std::ifstream fileStream(kProcDirectory + std::to_string(pid) +
+                           kStatusFilename);
+  if (fileStream.is_open()) {
+    while (getline(fileStream, line)) {
+      std::istringstream linestream(line);
+      linestream >> key >> value;
+      if (key == "Uid:") {
+        Uid = value;
+        break;
+      }
+    }
+  }
+  return Uid;
+}
 
 // TODO: Read and return the user associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::User(int pid [[maybe_unused]]) { return string(); }
+string LinuxParser::User(int pid) {
+  // Map Uid in /etc/passwd file to get the username of the person
+  string line;
+  string userName, x, Uid_;
+  string Uid = LinuxParser::Uid(pid);
+  std::ifstream fileStream(kPasswordPath);
+  if (fileStream.is_open()) {
+    while (getline(fileStream, line)) {
+      std::replace(line.begin(), line.end(), ':', ' ');
+      std::istringstream linestream(line);
+      linestream >> userName >> x >> Uid_;
+      if (Uid_ == Uid) {
+        // Got username for the given PID
+        return userName;
+      }
+    }
+  }
+
+  return "";
+}
 
 // TODO: Read and return the uptime of a process
 // REMOVE: [[maybe_unused]] once you define the function
