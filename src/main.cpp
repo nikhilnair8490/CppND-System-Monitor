@@ -5,6 +5,6 @@
 
 int main() {
   System system;
-  //std::cout << LinuxParser::IdleJiffies() << std::endl;
-  NCursesDisplay::Display(system);
+  std::cout << LinuxParser::RunningProcesses() << std::endl;
+  //NCursesDisplay::Display(system);
 }
