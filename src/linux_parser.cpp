@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include <filesystem>
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -169,30 +170,30 @@ long LinuxParser::Jiffies() {
 // REMOVE: [[maybe_unused]] once you define the function
 long LinuxParser::ActiveJiffies(int pid) {
   // Active jiffies of a process is utime + stime
-  string token1, token2, token3;
   string line;
   long value = 0, utime = 0, stime = 0;
   std::ifstream stream(kProcDirectory + std::to_string(pid) + kStatFilename);
   if (stream.is_open()) {
     std::getline(stream, line);
-    std::istringstream linestream(line);
-    std::replace(line.begin(), line.end(), '(', ' ');
-    std::replace(line.begin(), line.end(), ')', ' ');
-    // Ignore first three strings
-    linestream >> token1;
-    linestream >> token2;
-    linestream >> token3;
-    int i = 4;
-    // user time utime is in 14th pos and system time stime is in 15th.
-    while (linestream >> value) {
-      if (i == 14) {
-        utime = value;
+    // Find where the process name ends
+    size_t pos = line.find(')');
+    if (pos != string::npos) {
+      // Shift two pos ahead
+      std::istringstream linestream(line.substr(pos + 2));
+      std::string dummy;
+      linestream >> dummy;  // Read and discard the "S" (state)
+      int i = 1;
+      // user time utime is in 11th pos and system time stime is in 12th.
+      while (linestream >> value) {
+        if (i == 11) {
+          utime = value;
+        }
+        if (i == 12) {
+          stime = value;
+          break;
+        }
+        ++i;
       }
-      if (i == 15) {
-        stime = value;
-        break;
-      }
-      i++;
     }
   }
 
@@ -402,4 +403,36 @@ string LinuxParser::User(int pid) {
 
 // TODO: Read and return the uptime of a process
 // REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::UpTime(int pid [[maybe_unused]]) { return 0; }
+long LinuxParser::UpTime(int pid) {
+  // Uptime of a process is in process stat file
+  string line;
+  long value = 0, upTime = 0, upTime_sec = 0;
+  std::ifstream stream(kProcDirectory + std::to_string(pid) + kStatFilename);
+  if (stream.is_open()) {
+    std::getline(stream, line);
+
+    // Find where the process name ends
+    size_t pos = line.find(')');
+    if (pos != string::npos) {
+      std::istringstream linestream(line.substr(pos + 2));
+      std::string dummy;
+      linestream >> dummy;  // Read and discard the "S" (state)
+      int i = 1;
+      // uptime in jiffies is at 19th position ater process name
+      while (linestream >> value) {
+        if (i == 19) {
+          upTime = value;
+          break;
+        }
+        ++i;
+      }
+    }
+  }
+
+  // Current system up time
+  long systemUpTime = LinuxParser::UpTime();
+  // Proces up time in secs
+  upTime_sec = systemUpTime - (upTime / sysconf(_SC_CLK_TCK));
+
+  return upTime_sec;
+}
