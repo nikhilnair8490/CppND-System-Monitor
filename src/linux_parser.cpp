@@ -275,7 +275,32 @@ long LinuxParser::IdleJiffies() {
 }
 
 // TODO: Read and return CPU utilization
-vector<string> LinuxParser::CpuUtilization() { return {}; }
+vector<string> LinuxParser::CpuUtilization() {
+  // CPU utilization is ratio of Active Jiffies Diff / Total Jiffies Diff
+  // Previous jiffie values
+  static long prevActvJiffie = 0;
+  static long prevTotalJiffie = 0;
+  float cpuUtilization = 0.0f;
+
+  // Current cpu jiffies value
+  long currActvJiffie = LinuxParser::ActiveJiffies();
+  long currTotalJiffie = LinuxParser::Jiffies();
+
+  long deltaTotal = (currTotalJiffie - prevTotalJiffie);
+  // Change in jiffies
+  if (deltaTotal > 0) {
+    cpuUtilization = float(currActvJiffie - prevActvJiffie) / deltaTotal;
+  }
+
+  // Update prev jiffie
+  prevActvJiffie = currActvJiffie;
+  prevTotalJiffie = currTotalJiffie;
+
+  vector<string> output;
+  output.push_back(std::to_string(cpuUtilization));
+
+  return output;
+}
 
 // TODO: Read and return the total number of processes
 int LinuxParser::TotalProcesses() {

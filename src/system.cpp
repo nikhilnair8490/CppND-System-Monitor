@@ -23,7 +23,11 @@ You need to properly format the uptime. Refer to the comments mentioned in
 format. cpp for formatting the uptime.*/
 
 // TODO: Return the system's CPU
-Processor& System::Cpu() { return cpu_; }
+Processor& System::Cpu() {
+  Processor processor;
+  cpu_ = processor;
+  return cpu_;
+}
 
 // TODO: Return a container composed of the system's processes
 vector<Process>& System::Processes() { return processes_; }
