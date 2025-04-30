@@ -6,6 +6,6 @@
 
 int main() {
   System system;
-  std::cout << LinuxParser::UpTime(434) << std::endl;
-  // NCursesDisplay::Display(system);
+  // std::cout << Format::ElapsedTime(36501) << std::endl;
+  NCursesDisplay::Display(system);
 }

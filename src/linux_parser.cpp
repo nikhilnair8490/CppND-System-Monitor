@@ -100,6 +100,7 @@ float LinuxParser::MemoryUtilization() {
   float memCache = 0.0f;
   float memSreclaim = 0.0f;
   float memShmem = 0.0f;
+  float memUsed_pct = 0.0f;
   string line;
   string key;
   string value;
@@ -127,7 +128,10 @@ float LinuxParser::MemoryUtilization() {
     }
   }
   memUsed = memTotal - memFree - (memBuff + memCache + memSreclaim - memShmem);
-  return memUsed;
+  if (memTotal > 0.0f) {
+    memUsed_pct = memUsed / memTotal;
+  }
+  return memUsed_pct;
 }
 
 // TODO: Read and return the system uptime
