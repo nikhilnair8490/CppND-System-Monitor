@@ -15,6 +15,7 @@ class Process {
   std::string Ram();                       // TODO: See src/process.cpp
   long int UpTime();                       // TODO: See src/process.cpp
   bool operator<(Process const& a) const;  // TODO: See src/process.cpp
+  void UpdateCpuUtilization();
   // Constructor
   Process(int pid);
 
@@ -23,6 +24,7 @@ class Process {
   int pid_;
   std::string cmd_ = {};
   std::string user_ = {};
+  float cpuUtil_ = 0.0f;
 };
 
 #endif

@@ -17,7 +17,11 @@ using std::vector;
 int Process::Pid() { return pid_; }
 
 // TODO: Return this process's CPU utilization
-float Process::CpuUtilization() { return 0.0f; }
+float Process::CpuUtilization() { return cpuUtil_; }
+
+void Process::UpdateCpuUtilization() {
+  cpuUtil_ = LinuxParser::CpuUtilization(pid_);
+}
 
 // TODO: Return the command that generated this process
 string Process::Command() { return cmd_; }
@@ -33,8 +37,8 @@ long int Process::UpTime() { return LinuxParser::UpTime(pid_); }
 
 // TODO: Overload the "less than" comparison operator for Process objects
 // REMOVE: [[maybe_unused]] once you define the function
-bool Process::operator<(Process const& a [[maybe_unused]]) const {
-  return true;
+bool Process::operator<(Process const& a) const {
+  return (cpuUtil_ > a.cpuUtil_);
 }
 
 // Constructor to initialize static attributes of a process
@@ -42,4 +46,5 @@ Process::Process(int pid) {
   pid_ = pid;
   cmd_ = LinuxParser::Command(pid);
   user_ = LinuxParser::User(pid);
+  UpdateCpuUtilization();
 }

@@ -302,6 +302,23 @@ vector<string> LinuxParser::CpuUtilization() {
   return output;
 }
 
+// TODO: Read and return CPU utilization of a process
+float LinuxParser::CpuUtilization(int pid) {
+  // CPU usage (%) = total time used by process / time since process started
+  float cpuUtilization = 0.0f;
+
+  // Current cpu jiffies value
+  long currActvJiffie = LinuxParser::ActiveJiffies(pid);
+  long currTotalJiffie = LinuxParser::UpTime(pid) * sysconf(_SC_CLK_TCK);
+
+  // Change in jiffies
+  if (currTotalJiffie > 0) {
+    cpuUtilization = float(currActvJiffie) / currTotalJiffie;
+  }
+
+  return cpuUtilization;
+}
+
 // TODO: Read and return the total number of processes
 int LinuxParser::TotalProcesses() {
   // Total processes is in proc/stat file under the processes key

@@ -32,8 +32,12 @@ vector<Process>& System::Processes() {
   std::vector<Process> updated_processes = {};
   // Create list of updated processes for this cycle
   for (int pid : pids) {
-    updated_processes.push_back(Process(pid));
+    Process newProcess(pid);
+    newProcess.UpdateCpuUtilization();
+    updated_processes.push_back(newProcess);
   }
+  // Sort the process
+  std::sort(updated_processes.begin(), updated_processes.end());
   processes_ = updated_processes;
   return processes_;
 }
