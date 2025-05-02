@@ -8,6 +8,6 @@
 int main() {
   System system;
   // std::vector<std::string> out = LinuxParser::CpuUtilization();
-  // std::cout << Format::ElapsedTime(36501) << std::endl;
+  // std::cout << LinuxParser::UpTime(1) << std::endl;
   NCursesDisplay::Display(system);
 }

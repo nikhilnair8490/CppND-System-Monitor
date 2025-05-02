@@ -381,7 +381,11 @@ string LinuxParser::Ram(int pid) {
       }
     }
   }
-  return memUsed;
+
+  // Convert ram usage from kB to MB
+  long memUsed_MB = std::stol(memUsed) / 1024;
+
+  return std::to_string(memUsed_MB);
 }
 
 // TODO: Read and return the user ID associated with a process
@@ -433,7 +437,7 @@ string LinuxParser::User(int pid) {
 // TODO: Read and return the uptime of a process
 // REMOVE: [[maybe_unused]] once you define the function
 long LinuxParser::UpTime(int pid) {
-  // Uptime of a process is in process stat file
+  // Uptime of a process is calc from its starttime in process stat file
   string line;
   long value = 0, upTime = 0, upTime_sec = 0;
   std::ifstream stream(kProcDirectory + std::to_string(pid) + kStatFilename);
@@ -447,7 +451,7 @@ long LinuxParser::UpTime(int pid) {
       std::string dummy;
       linestream >> dummy;  // Read and discard the "S" (state)
       int i = 1;
-      // uptime in jiffies is at 19th position ater process name
+      // uptime in jiffies is at 19th position after process name
       while (linestream >> value) {
         if (i == 19) {
           upTime = value;

@@ -23,23 +23,29 @@ You need to properly format the uptime. Refer to the comments mentioned in
 format. cpp for formatting the uptime.*/
 
 // TODO: Return the system's CPU
-Processor& System::Cpu() {
-  Processor processor;
-  cpu_ = processor;
-  return cpu_;
-}
+Processor& System::Cpu() { return cpu_; }
 
 // TODO: Return a container composed of the system's processes
-vector<Process>& System::Processes() { return processes_; }
+vector<Process>& System::Processes() {
+  // get the current list of processes IDs
+  vector<int> pids = LinuxParser::Pids();
+  std::vector<Process> updated_processes = {};
+  // Create list of updated processes for this cycle
+  for (int pid : pids) {
+    updated_processes.push_back(Process(pid));
+  }
+  processes_ = updated_processes;
+  return processes_;
+}
 
 // TODO: Return the system's kernel identifier (string)
-std::string System::Kernel() { return LinuxParser::Kernel(); }
+std::string System::Kernel() { return kernel_; }
 
 // TODO: Return the system's memory utilization
 float System::MemoryUtilization() { return LinuxParser::MemoryUtilization(); }
 
 // TODO: Return the operating system name
-std::string System::OperatingSystem() { return LinuxParser::OperatingSystem(); }
+std::string System::OperatingSystem() { return operSys_; }
 
 // TODO: Return the number of processes actively running on the system
 int System::RunningProcesses() { return LinuxParser::RunningProcesses(); }
@@ -49,3 +55,11 @@ int System::TotalProcesses() { return LinuxParser::TotalProcesses(); }
 
 // TODO: Return the number of seconds since the system started running
 long int System::UpTime() { return LinuxParser::UpTime(); }
+
+// Constructor to intialize static attributes of system
+System::System() {
+  Processor processor;
+  cpu_ = processor;
+  operSys_ = LinuxParser::OperatingSystem();
+  kernel_ = LinuxParser::Kernel();
+};
